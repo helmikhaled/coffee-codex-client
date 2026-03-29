@@ -6,7 +6,7 @@ Tasks must be executed sequentially.
 
 # Task 1 - Define Recipe Detail Contracts
 
-Status: Pending
+Status: Completed
 
 Create the frontend TypeScript contracts required for recipe detail rendering.
 
@@ -25,7 +25,7 @@ Deliverables
 
 # Task 2 - Implement Recipe Detail API Service
 
-Status: Pending
+Status: Completed
 
 Implement feature-scoped HTTP integration for `GET /recipes/{id}`.
 
@@ -44,7 +44,7 @@ Deliverables
 
 # Task 3 - Add API Service Tests
 
-Status: Pending
+Status: Completed
 
 Verify endpoint and request behavior for the detail API service.
 
@@ -63,7 +63,7 @@ Deliverables
 
 # Task 4 - Implement Recipe Detail Store
 
-Status: Pending
+Status: Completed
 
 Add signal-based state management for recipe detail loading.
 
@@ -83,7 +83,7 @@ Deliverables
 
 # Task 5 - Add Store Tests
 
-Status: Pending
+Status: Completed
 
 Validate recipe detail store behavior under success and failure scenarios.
 
@@ -103,7 +103,7 @@ Deliverables
 
 # Task 6 - Create Recipe Hero Media Component
 
-Status: Pending
+Status: Completed
 
 Build the media section for recipe images and carousel interaction.
 
@@ -122,7 +122,7 @@ Deliverables
 
 # Task 7 - Create Brew Specs Component
 
-Status: Pending
+Status: Completed
 
 Build the brew specifications section for the detail page.
 
@@ -141,7 +141,7 @@ Deliverables
 
 # Task 8 - Create Ingredients Component
 
-Status: Pending
+Status: Completed
 
 Build the ingredient list section for recipe detail.
 
@@ -160,7 +160,7 @@ Deliverables
 
 # Task 9 - Create Preparation Steps Component
 
-Status: Pending
+Status: Completed
 
 Build the step-by-step instructions section.
 
@@ -179,7 +179,7 @@ Deliverables
 
 # Task 10 - Create Recipe Metadata Component
 
-Status: Pending
+Status: Completed
 
 Build supporting metadata presentation for category, tags, and author details.
 
@@ -198,7 +198,7 @@ Deliverables
 
 # Task 11 - Replace Placeholder With Recipe Page Container
 
-Status: Pending
+Status: Completed
 
 Create the route container page and remove placeholder usage.
 
@@ -217,7 +217,7 @@ Deliverables
 
 # Task 12 - Implement Page-Level Loading, Error, And Not-Found States
 
-Status: Pending
+Status: Completed
 
 Add non-happy-path UX for the route page container.
 
@@ -236,7 +236,7 @@ Deliverables
 
 # Task 13 - Add Shareable URL Section
 
-Status: Pending
+Status: Completed
 
 Expose explicit share URL behavior on the recipe page.
 
@@ -255,7 +255,7 @@ Deliverables
 
 # Task 14 - Add Recipe Page Component Tests
 
-Status: Pending
+Status: Completed
 
 Cover the end-user rendering behavior for the recipe detail page.
 
@@ -275,7 +275,7 @@ Deliverables
 
 # Task 15 - Run Feature Verification
 
-Status: Pending
+Status: Completed
 
 Validate the completed feature with local checks and manual review.
 

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomePage } from './features/home/home-page';
-import { RecipePagePlaceholder } from './features/recipe/recipe-page-placeholder';
+import { RecipePage } from './features/recipe/recipe-page';
 
 export const routes: Routes = [
   {
@@ -9,6 +9,6 @@ export const routes: Routes = [
   },
   {
     path: 'r/:id',
-    component: RecipePagePlaceholder,
+    component: RecipePage,
   },
 ];
