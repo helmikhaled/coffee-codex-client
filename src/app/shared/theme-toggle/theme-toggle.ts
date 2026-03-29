@@ -31,7 +31,7 @@ import { ThemeService } from '../../core/theme/theme.service';
     </button>
   `,
 })
-export class ThemeToggleComponent {
+export class ThemeToggle {
   private readonly themeService = inject(ThemeService);
 
   readonly isDark = this.themeService.isDark;

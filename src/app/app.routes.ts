@@ -1,14 +1,14 @@
 import { Routes } from '@angular/router';
-import { HomePageComponent } from './features/home/home-page.component';
-import { RecipePagePlaceholderComponent } from './features/recipe/recipe-page-placeholder.component';
+import { HomePage } from './features/home/home-page';
+import { RecipePagePlaceholder } from './features/recipe/recipe-page-placeholder';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomePageComponent,
+    component: HomePage,
   },
   {
     path: 'r/:id',
-    component: RecipePagePlaceholderComponent,
+    component: RecipePagePlaceholder,
   },
 ];

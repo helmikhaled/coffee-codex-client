@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AppHeaderComponent } from '../app-header/app-header.component';
+import { AppHeader } from '../app-header/app-header';
 
 @Component({
   selector: 'app-app-shell',
-  imports: [RouterOutlet, AppHeaderComponent],
+  imports: [RouterOutlet, AppHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './app-shell.component.html',
+  templateUrl: './app-shell.html',
 })
-export class AppShellComponent {}
+export class AppShell {}

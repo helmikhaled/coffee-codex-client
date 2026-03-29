@@ -15,6 +15,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     </section>
   `,
 })
-export class RecipePagePlaceholderComponent {
+export class RecipePagePlaceholder {
   id = input('');
 }

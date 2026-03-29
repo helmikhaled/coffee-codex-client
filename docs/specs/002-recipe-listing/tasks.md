@@ -6,7 +6,7 @@ Tasks must be executed sequentially.
 
 # Task 1 - Define Listing Contracts
 
-Status: Pending
+Status: Completed
 
 Create the frontend TypeScript contracts required by the recipe listing feature.
 
@@ -27,7 +27,7 @@ Deliverables
 
 # Task 2 - Enable HTTP Access In Application Configuration
 
-Status: Pending
+Status: Completed
 
 Prepare the Angular application to call the backend recipes API.
 
@@ -45,7 +45,7 @@ Deliverables
 
 # Task 3 - Create Recipe Listing Data Access
 
-Status: Pending
+Status: Completed
 
 Implement the feature-scoped API integration for `GET /recipes`.
 
@@ -65,7 +65,7 @@ Deliverables
 
 # Task 4 - Implement Listing State Management
 
-Status: Pending
+Status: Completed
 
 Add signal-based state handling for the homepage listing flow.
 
@@ -85,7 +85,7 @@ Deliverables
 
 # Task 5 - Build Recipe Card Component
 
-Status: Pending
+Status: Completed
 
 Create a reusable presentational card for recipe summaries.
 
@@ -104,7 +104,7 @@ Deliverables
 
 # Task 6 - Build Recipe Grid Component
 
-Status: Pending
+Status: Completed
 
 Create the presentational grid wrapper that renders recipe cards responsively.
 
@@ -123,7 +123,7 @@ Deliverables
 
 # Task 7 - Replace Homepage Placeholder With Listing Layout
 
-Status: Pending
+Status: Completed
 
 Update `HomePageComponent` to render the landing page structure for this feature.
 
@@ -142,7 +142,7 @@ Deliverables
 
 # Task 8 - Wire Card Navigation To Recipe Detail Route
 
-Status: Pending
+Status: Completed
 
 Connect recipe cards to the existing detail route.
 
@@ -160,7 +160,7 @@ Deliverables
 
 # Task 9 - Implement Load More Pagination
 
-Status: Pending
+Status: Completed
 
 Add incremental loading behavior to the homepage.
 
@@ -180,7 +180,7 @@ Deliverables
 
 # Task 10 - Add Loading, Empty, And Error States
 
-Status: Pending
+Status: Completed
 
 Implement non-happy-path UX for the listing page.
 
@@ -199,7 +199,7 @@ Deliverables
 
 # Task 11 - Polish Responsive And Themed Presentation
 
-Status: Pending
+Status: Completed
 
 Refine the listing UI so it matches the product direction across breakpoints and themes.
 
@@ -218,7 +218,7 @@ Deliverables
 
 # Task 12 - Add Automated Tests
 
-Status: Pending
+Status: Completed
 
 Create tests covering the primary recipe listing behaviors.
 
@@ -237,7 +237,7 @@ Deliverables
 
 # Task 13 - Verify Feature End To End
 
-Status: Pending
+Status: Completed
 
 Run project checks and manually verify the implemented experience.
 
