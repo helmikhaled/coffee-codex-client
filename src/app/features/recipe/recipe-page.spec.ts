@@ -62,6 +62,52 @@ describe('RecipePage', () => {
     expect(heroImage).toBeTruthy();
   });
 
+  it('should render carousel pagination and navigate images from pagination dots', async () => {
+    const fixture = TestBed.createComponent(RecipePage);
+    fixture.componentRef.setInput('id', 'dirty-matcha');
+
+    fixture.detectChanges();
+
+    expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const pagination = root.querySelector('[aria-label="Recipe image pagination"]');
+    expect(pagination).toBeTruthy();
+
+    const dots = Array.from(pagination?.querySelectorAll('button') ?? []) as HTMLButtonElement[];
+    expect(dots.length).toBe(2);
+
+    dots[1].click();
+    fixture.detectChanges();
+
+    const activeHeroImage = root.querySelector('img');
+    expect(activeHeroImage?.getAttribute('src')).toContain('dirty-matcha-side.jpg');
+  });
+
+  it('should hide carousel controls when recipe has only one image', async () => {
+    const fixture = TestBed.createComponent(RecipePage);
+    fixture.componentRef.setInput('id', 'single-image');
+
+    fixture.detectChanges();
+
+    expectRecipeDetailRequest('single-image').flush(
+      createRecipeDetail('single-image', {
+        images: [{ url: 'https://images.example.com/single-image.jpg', caption: 'Single Image', order: 1 }],
+      }),
+    );
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('button[aria-label="Previous image"]')).toBeNull();
+    expect(root.querySelector('button[aria-label="Next image"]')).toBeNull();
+    expect(root.querySelector('[aria-label="Recipe image pagination"]')).toBeNull();
+  });
+
   it('should hide coffee dose and yield fields when brew specs are null', async () => {
     const fixture = TestBed.createComponent(RecipePage);
     fixture.componentRef.setInput('id', 'matcha-latte');
