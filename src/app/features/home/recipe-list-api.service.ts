@@ -12,21 +12,37 @@ export class RecipeListApiService {
   private readonly recipesEndpoint = `${environment.apiBaseUrl.replace(/\/+$/, '')}/recipes`;
 
   getRecipes(query: RecipeListQueryDto): Observable<PagedResponseDto<RecipeSummaryDto>> {
-    const params = new HttpParams({
+    let params = new HttpParams({
       fromObject: {
         page: String(query.page),
         pageSize: String(query.pageSize),
       },
     });
 
+    if (query.category) {
+      params = params.set('category', query.category);
+    }
+
+    const normalizedTag = query.tag?.trim();
+    if (normalizedTag) {
+      params = params.set('tag', normalizedTag);
+    }
+
     return this.httpClient.get<PagedResponseDto<RecipeSummaryDto>>(this.recipesEndpoint, { params });
   }
 
-  getFirstPage(pageSize: number): Observable<PagedResponseDto<RecipeSummaryDto>> {
-    return this.getRecipes({ page: 1, pageSize });
+  getFirstPage(
+    pageSize: number,
+    filters?: Pick<RecipeListQueryDto, 'category' | 'tag'>,
+  ): Observable<PagedResponseDto<RecipeSummaryDto>> {
+    return this.getRecipes({ page: 1, pageSize, ...filters });
   }
 
-  getNextPage(currentPage: number, pageSize: number): Observable<PagedResponseDto<RecipeSummaryDto>> {
-    return this.getRecipes({ page: currentPage + 1, pageSize });
+  getNextPage(
+    currentPage: number,
+    pageSize: number,
+    filters?: Pick<RecipeListQueryDto, 'category' | 'tag'>,
+  ): Observable<PagedResponseDto<RecipeSummaryDto>> {
+    return this.getRecipes({ page: currentPage + 1, pageSize, ...filters });
   }
 }

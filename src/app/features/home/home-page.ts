@@ -1,10 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RecipeCategory } from '../../contracts/recipe-summary.dto';
+import {
+  RECIPE_FILTER_CATEGORY_OPTIONS,
+  RECIPE_FILTER_CATEGORY_VALUES,
+  RECIPE_FILTER_TAG_OPTIONS,
+  RECIPE_FILTER_TAG_VALUES,
+} from './recipe-filter-options';
+import { RecipeFilters } from './recipe-filters';
 import { RecipeGrid } from './recipe-grid';
 import { RecipeListStore } from './recipe-list.store';
 
 @Component({
   selector: 'app-home-page',
-  imports: [RecipeGrid],
+  imports: [RecipeGrid, RecipeFilters],
   providers: [RecipeListStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -74,6 +83,16 @@ import { RecipeListStore } from './recipe-list.store';
           </p>
         </div>
 
+        <app-recipe-filters
+          [categoryOptions]="categoryOptions"
+          [tagOptions]="tagOptions"
+          [selectedCategory]="store.selectedCategory()"
+          [selectedTag]="store.selectedTag()"
+          (categoryChanged)="applyCategoryFilter($event)"
+          (tagChanged)="applyTagFilter($event)"
+          (clearRequested)="clearFilters()"
+        />
+
         @if (store.isInitialLoading() && !store.hasRecipes()) {
           <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @for (skeleton of skeletonCards; track skeleton) {
@@ -108,11 +127,32 @@ import { RecipeListStore } from './recipe-list.store';
           <div
             class="rounded-[1.75rem] border border-dashed border-stone-300/90 bg-stone-100/70 px-6 py-10 text-center dark:border-stone-700 dark:bg-stone-900/60"
           >
-            <p class="text-[0.72rem] uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">No Recipes Yet</p>
-            <h3 class="mt-3 font-serif text-3xl text-stone-900 dark:text-stone-50">The library is currently empty.</h3>
-            <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-stone-600 dark:text-stone-300">
-              Once the curator publishes recipes, they will appear here in their intended browsing order.
+            <p class="text-[0.72rem] uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">
+              {{ store.hasActiveFilters() ? 'No Matching Recipes' : 'No Recipes Yet' }}
             </p>
+            <h3 class="mt-3 font-serif text-3xl text-stone-900 dark:text-stone-50">
+              {{
+                store.hasActiveFilters()
+                  ? 'No recipes matched your selected filters.'
+                  : 'The library is currently empty.'
+              }}
+            </h3>
+            <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-stone-600 dark:text-stone-300">
+              {{
+                store.hasActiveFilters()
+                  ? 'Try a different category or tag to broaden the recipe shelf.'
+                  : 'Once the curator publishes recipes, they will appear here in their intended browsing order.'
+              }}
+            </p>
+            @if (store.hasActiveFilters()) {
+              <button
+                type="button"
+                class="mt-6 inline-flex min-w-40 items-center justify-center rounded-full border border-stone-300/80 bg-white px-6 py-3 text-sm font-medium tracking-[0.08em] text-stone-700 transition hover:border-stone-400 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:hover:border-stone-600 dark:hover:bg-stone-800"
+                (click)="clearFilters()"
+              >
+                Clear Filters
+              </button>
+            }
           </div>
         } @else {
           <app-recipe-grid [recipes]="store.recipes()" [linkRecipes]="true" />
@@ -148,8 +188,12 @@ import { RecipeListStore } from './recipe-list.store';
   `,
 })
 export class HomePage implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   protected readonly store = inject(RecipeListStore);
   protected readonly skeletonCards = [1, 2, 3, 4, 5, 6];
+  protected readonly categoryOptions = RECIPE_FILTER_CATEGORY_OPTIONS;
+  protected readonly tagOptions = RECIPE_FILTER_TAG_OPTIONS;
   protected readonly recipeCountSummary = computed(() => {
     if (this.store.isInitialLoading() && !this.store.hasRecipes()) {
       return 'Brewing selection';
@@ -163,6 +207,11 @@ export class HomePage implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    const queryParams = this.route.snapshot.queryParamMap;
+    const category = this.normalizeCategory(queryParams.get('category'));
+    const tag = this.normalizeTag(queryParams.get('tag'));
+
+    await this.store.syncFilters(category, tag);
     await this.store.loadInitial();
   }
 
@@ -176,5 +225,47 @@ export class HomePage implements OnInit {
 
   protected async retryLoadMore(): Promise<void> {
     await this.store.retryLoadMore();
+  }
+
+  protected async applyCategoryFilter(category: RecipeCategory | null): Promise<void> {
+    await this.store.applyCategoryFilter(category);
+    await this.updateFilterQueryParams(this.store.selectedCategory(), this.store.selectedTag());
+  }
+
+  protected async applyTagFilter(tag: string | null): Promise<void> {
+    await this.store.applyTagFilter(tag);
+    await this.updateFilterQueryParams(this.store.selectedCategory(), this.store.selectedTag());
+  }
+
+  protected async clearFilters(): Promise<void> {
+    await this.store.clearFilters();
+    await this.updateFilterQueryParams(null, null);
+  }
+
+  private normalizeCategory(value: string | null): RecipeCategory | null {
+    if (!value || !RECIPE_FILTER_CATEGORY_VALUES.has(value as RecipeCategory)) {
+      return null;
+    }
+
+    return value as RecipeCategory;
+  }
+
+  private normalizeTag(value: string | null): string | null {
+    const normalized = value?.trim().toLowerCase();
+    if (!normalized || !RECIPE_FILTER_TAG_VALUES.has(normalized)) {
+      return null;
+    }
+
+    return normalized;
+  }
+
+  private async updateFilterQueryParams(category: RecipeCategory | null, tag: string | null): Promise<void> {
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        category: category ?? null,
+        tag: tag ?? null,
+      },
+    });
   }
 }

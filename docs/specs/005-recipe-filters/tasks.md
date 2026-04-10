@@ -6,7 +6,7 @@ Tasks must be executed sequentially.
 
 # Task 1 - Extend Listing Query Contract For Filters
 
-Status: Not Started
+Status: Completed
 
 Update the listing query DTO so filter parameters can be sent to the existing recipes endpoint.
 
@@ -25,7 +25,7 @@ Deliverables
 
 # Task 2 - Define Filter Option Models And Defaults
 
-Status: Not Started
+Status: Completed
 
 Create typed filter option data used by homepage UI and URL normalization.
 
@@ -44,7 +44,7 @@ Deliverables
 
 # Task 3 - Add Filter Support To Recipe List API Service
 
-Status: Not Started
+Status: Completed
 
 Extend the listing API layer to send active filters along with pagination.
 
@@ -63,7 +63,7 @@ Deliverables
 
 # Task 4 - Expand API Service Tests For Filter Serialization
 
-Status: Not Started
+Status: Completed
 
 Verify filtered query parameter behavior in API tests.
 
@@ -83,7 +83,7 @@ Deliverables
 
 # Task 5 - Add Filter State To Listing Store
 
-Status: Not Started
+Status: Completed
 
 Introduce store-level state for active category and tag filters.
 
@@ -102,7 +102,7 @@ Deliverables
 
 # Task 6 - Implement Store Actions For Apply/Clear Filters
 
-Status: Not Started
+Status: Completed
 
 Implement deterministic filter actions that reset pagination correctly.
 
@@ -121,7 +121,7 @@ Deliverables
 
 # Task 7 - Add Store Tests For Filter And Pagination Behavior
 
-Status: Not Started
+Status: Completed
 
 Create focused tests for filtered store transitions.
 
@@ -141,7 +141,7 @@ Deliverables
 
 # Task 8 - Implement URL Query Param Parsing And Normalization
 
-Status: Not Started
+Status: Completed
 
 Add homepage logic to parse and sanitize `category` and `tag` from route query params.
 
@@ -160,7 +160,7 @@ Deliverables
 
 # Task 9 - Implement URL Sync On Filter Changes
 
-Status: Not Started
+Status: Completed
 
 Persist active filter changes back to route query parameters.
 
@@ -179,7 +179,7 @@ Deliverables
 
 # Task 10 - Build Reusable Recipe Filters UI Component
 
-Status: Not Started
+Status: Completed
 
 Create standalone filter controls rendered above the recipe grid.
 
@@ -198,7 +198,7 @@ Deliverables
 
 # Task 11 - Apply Responsive And Accessible Filter UI Styling
 
-Status: Not Started
+Status: Completed
 
 Refine filter control presentation for mobile-first usability and accessibility.
 
@@ -217,7 +217,7 @@ Deliverables
 
 # Task 12 - Integrate Filter Component Into Homepage Listing Flow
 
-Status: Not Started
+Status: Completed
 
 Wire filter UI actions to store and URL behavior.
 
@@ -236,7 +236,7 @@ Deliverables
 
 # Task 13 - Add Filter-Aware Empty/Error Messaging
 
-Status: Not Started
+Status: Completed
 
 Ensure homepage UX states remain clear when filters are active.
 
@@ -254,7 +254,7 @@ Deliverables
 
 # Task 14 - Add Homepage Integration Tests For Filters
 
-Status: Not Started
+Status: Completed
 
 Extend homepage tests for end-to-end filter interaction behavior.
 
@@ -274,7 +274,7 @@ Deliverables
 
 # Task 15 - Run Feature Verification
 
-Status: Not Started
+Status: Completed
 
 Validate the completed filter feature with automated and manual checks.
 
