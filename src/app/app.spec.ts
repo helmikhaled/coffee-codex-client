@@ -35,7 +35,8 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Coffee Codex');
-    expect(compiled.querySelector('[aria-label="Search"]')).toBeTruthy();
+    expect(compiled.querySelector('#desktop-header-search')).toBeTruthy();
+    expect(compiled.querySelector('[aria-label="Toggle search"]')).toBeTruthy();
     expect(compiled.querySelector('[aria-label="Switch to dark mode"], [aria-label="Switch to light mode"]')).toBeTruthy();
   });
 

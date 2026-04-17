@@ -58,8 +58,8 @@ describe('RecipeListApiService', () => {
     request.flush(createPagedResponse(2, 2, [createRecipeSummary('orange-americano', 'Orange Americano')]));
   });
 
-  it('should include category and tag filters when provided', () => {
-    service.getFirstPage(12, { category: 'Modern', tag: 'matcha' }).subscribe();
+  it('should include category, tag, and search query params when provided', () => {
+    service.getFirstPage(12, { category: 'Modern', tag: 'matcha', search: 'latte' }).subscribe();
 
     const request = httpController.expectOne(
       (req) =>
@@ -68,14 +68,15 @@ describe('RecipeListApiService', () => {
         req.params.get('page') === '1' &&
         req.params.get('pageSize') === '12' &&
         req.params.get('category') === 'Modern' &&
-        req.params.get('tag') === 'matcha',
+        req.params.get('tag') === 'matcha' &&
+        req.params.get('search') === 'latte',
     );
 
     request.flush(createPagedResponse(1, 1, [createRecipeSummary('dirty-matcha', 'Dirty Matcha')]));
   });
 
-  it('should omit empty filter values from query params', () => {
-    service.getFirstPage(12, { tag: '   ' }).subscribe();
+  it('should omit empty filter values and empty search from query params', () => {
+    service.getFirstPage(12, { tag: '   ', search: '   ' }).subscribe();
 
     const request = httpController.expectOne(
       (req) =>
@@ -84,7 +85,8 @@ describe('RecipeListApiService', () => {
         req.params.get('page') === '1' &&
         req.params.get('pageSize') === '12' &&
         !req.params.has('category') &&
-        !req.params.has('tag'),
+        !req.params.has('tag') &&
+        !req.params.has('search'),
     );
 
     request.flush(createPagedResponse(1, 1, [createRecipeSummary('dirty-matcha', 'Dirty Matcha')]));

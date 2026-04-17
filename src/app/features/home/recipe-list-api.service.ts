@@ -28,21 +28,26 @@ export class RecipeListApiService {
       params = params.set('tag', normalizedTag);
     }
 
+    const normalizedSearch = query.search?.trim();
+    if (normalizedSearch) {
+      params = params.set('search', normalizedSearch);
+    }
+
     return this.httpClient.get<PagedResponseDto<RecipeSummaryDto>>(this.recipesEndpoint, { params });
   }
 
   getFirstPage(
     pageSize: number,
-    filters?: Pick<RecipeListQueryDto, 'category' | 'tag'>,
+    query?: Pick<RecipeListQueryDto, 'category' | 'tag' | 'search'>,
   ): Observable<PagedResponseDto<RecipeSummaryDto>> {
-    return this.getRecipes({ page: 1, pageSize, ...filters });
+    return this.getRecipes({ page: 1, pageSize, ...query });
   }
 
   getNextPage(
     currentPage: number,
     pageSize: number,
-    filters?: Pick<RecipeListQueryDto, 'category' | 'tag'>,
+    query?: Pick<RecipeListQueryDto, 'category' | 'tag' | 'search'>,
   ): Observable<PagedResponseDto<RecipeSummaryDto>> {
-    return this.getRecipes({ page: currentPage + 1, pageSize, ...filters });
+    return this.getRecipes({ page: currentPage + 1, pageSize, ...query });
   }
 }

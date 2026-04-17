@@ -5,4 +5,5 @@ export interface RecipeListQueryDto {
   pageSize: number;
   category?: RecipeCategory;
   tag?: string;
+  search?: string;
 }

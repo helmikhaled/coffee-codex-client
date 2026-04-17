@@ -28,6 +28,7 @@ export class RecipeListStore {
   private readonly _loadMoreError = signal<string | null>(null);
   private readonly _selectedCategory = signal<RecipeCategory | null>(null);
   private readonly _selectedTag = signal<string | null>(null);
+  private readonly _searchTerm = signal<string | null>(null);
 
   readonly recipes = this._recipes.asReadonly();
   readonly page = this._page.asReadonly();
@@ -41,6 +42,7 @@ export class RecipeListStore {
   readonly loadMoreError = this._loadMoreError.asReadonly();
   readonly selectedCategory = this._selectedCategory.asReadonly();
   readonly selectedTag = this._selectedTag.asReadonly();
+  readonly searchTerm = this._searchTerm.asReadonly();
 
   readonly hasRecipes = computed(() => this._recipes().length > 0);
   readonly isEmpty = computed(
@@ -51,6 +53,7 @@ export class RecipeListStore {
       this._recipes().length === 0,
   );
   readonly hasActiveFilters = computed(() => !!this._selectedCategory() || !!this._selectedTag());
+  readonly hasActiveSearch = computed(() => !!this._searchTerm());
   readonly hasMore = computed(() => {
     if (!this._hasLoaded()) {
       return false;
@@ -84,7 +87,7 @@ export class RecipeListStore {
 
     try {
       const response = await firstValueFrom(
-        this.api.getFirstPage(this._pageSize(), this.activeFilters()),
+        this.api.getFirstPage(this._pageSize(), this.activeQuery()),
       );
       if (requestVersion !== this.requestVersion) {
         return;
@@ -116,7 +119,7 @@ export class RecipeListStore {
 
     try {
       const response = await firstValueFrom(
-        this.api.getNextPage(this._page(), this._pageSize(), this.activeFilters()),
+        this.api.getNextPage(this._page(), this._pageSize(), this.activeQuery()),
       );
       if (requestVersion !== this.requestVersion) {
         return;
@@ -166,8 +169,35 @@ export class RecipeListStore {
     await this.reloadForFilterChange();
   }
 
+  async applySearch(searchTerm: string | null): Promise<void> {
+    if (!this.setSearchTerm(this.normalizeSearch(searchTerm))) {
+      return;
+    }
+
+    await this.reloadForFilterChange();
+  }
+
+  async clearSearch(): Promise<void> {
+    if (!this.setSearchTerm(null)) {
+      return;
+    }
+
+    await this.reloadForFilterChange();
+  }
+
   async syncFilters(category: RecipeCategory | null, tag: string | null): Promise<void> {
-    if (!this.setFilters(category, this.normalizeTag(tag))) {
+    await this.syncQuery(category, tag, this._searchTerm());
+  }
+
+  async syncQuery(
+    category: RecipeCategory | null,
+    tag: string | null,
+    searchTerm: string | null,
+  ): Promise<void> {
+    const didUpdateFilters = this.setFilters(category, this.normalizeTag(tag));
+    const didUpdateSearch = this.setSearchTerm(this.normalizeSearch(searchTerm));
+
+    if (!didUpdateFilters && !didUpdateSearch) {
       return;
     }
 
@@ -222,10 +252,11 @@ export class RecipeListStore {
     return true;
   }
 
-  private activeFilters(): Pick<RecipeListQueryDto, 'category' | 'tag'> {
+  private activeQuery(): Pick<RecipeListQueryDto, 'category' | 'tag' | 'search'> {
     return {
       category: this._selectedCategory() ?? undefined,
       tag: this._selectedTag() ?? undefined,
+      search: this._searchTerm() ?? undefined,
     };
   }
 
@@ -242,6 +273,20 @@ export class RecipeListStore {
   private normalizeTag(tag: string | null | undefined): string | null {
     const normalized = tag?.trim();
     return normalized ? normalized : null;
+  }
+
+  private normalizeSearch(searchTerm: string | null | undefined): string | null {
+    const normalized = searchTerm?.trim();
+    return normalized ? normalized : null;
+  }
+
+  private setSearchTerm(searchTerm: string | null): boolean {
+    if (this._searchTerm() === searchTerm) {
+      return false;
+    }
+
+    this._searchTerm.set(searchTerm);
+    return true;
   }
 
   private normalizeNumber(value: unknown, fallback: number): number {

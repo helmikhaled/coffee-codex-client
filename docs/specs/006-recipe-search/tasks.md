@@ -6,7 +6,7 @@ Tasks must be executed sequentially.
 
 # Task 1 - Extend Listing Query Contract With Search
 
-Status: Pending
+Status: Completed
 
 Update the listing query DTO to support keyword search.
 
@@ -25,7 +25,7 @@ Deliverables
 
 # Task 2 - Serialize Search Query Param In Recipe List API Service
 
-Status: Pending
+Status: Completed
 
 Extend the listing API service so it sends `search` when provided.
 
@@ -44,7 +44,7 @@ Deliverables
 
 # Task 3 - Add API Tests For Search Query Serialization
 
-Status: Pending
+Status: Completed
 
 Verify request serialization behavior for search in API tests.
 
@@ -64,7 +64,7 @@ Deliverables
 
 # Task 4 - Add Search State Signals To RecipeListStore
 
-Status: Pending
+Status: Completed
 
 Introduce explicit search state in the listing store.
 
@@ -83,7 +83,7 @@ Deliverables
 
 # Task 5 - Implement Store Actions For Apply/Clear Search
 
-Status: Pending
+Status: Completed
 
 Add deterministic store actions for search transitions.
 
@@ -102,7 +102,7 @@ Deliverables
 
 # Task 6 - Compose Active Query State For Initial And Next-Page Loads
 
-Status: Pending
+Status: Completed
 
 Ensure all listing requests include active filters and active search consistently.
 
@@ -121,7 +121,7 @@ Deliverables
 
 # Task 7 - Add Store Tests For Search And Pagination Behavior
 
-Status: Pending
+Status: Completed
 
 Verify store behavior for search-driven state transitions.
 
@@ -141,7 +141,7 @@ Deliverables
 
 # Task 8 - Parse And Normalize Search Query Param In HomePage
 
-Status: Pending
+Status: Completed
 
 Add route-query parsing for `search` on the homepage container.
 
@@ -160,7 +160,7 @@ Deliverables
 
 # Task 9 - Switch HomePage Query Sync To Reactive Route Param Handling
 
-Status: Pending
+Status: Completed
 
 Make homepage react to query-param changes after initial render.
 
@@ -179,7 +179,7 @@ Deliverables
 
 # Task 10 - Update HomePage URL Writer To Preserve Combined Query State
 
-Status: Pending
+Status: Completed
 
 Ensure query-param updates preserve active search and active filters.
 
@@ -198,7 +198,7 @@ Deliverables
 
 # Task 11 - Implement Header Search Interaction Logic
 
-Status: Pending
+Status: Completed
 
 Add component logic for search input, submit, and clear behavior in the shared header.
 
@@ -217,7 +217,7 @@ Deliverables
 
 # Task 12 - Build Desktop Header Search UI
 
-Status: Pending
+Status: Completed
 
 Render always-visible desktop search input in header.
 
@@ -236,7 +236,7 @@ Deliverables
 
 # Task 13 - Build Mobile Collapsible Header Search UI
 
-Status: Pending
+Status: Completed
 
 Implement collapsible search behavior for smaller screens.
 
@@ -255,7 +255,7 @@ Deliverables
 
 # Task 14 - Wire Header Search To Router Query Params And Cross-Route Navigation
 
-Status: Pending
+Status: Completed
 
 Connect header search actions to route state.
 
@@ -274,7 +274,7 @@ Deliverables
 
 # Task 15 - Add Search-Specific Empty-State Messaging And Recovery
 
-Status: Pending
+Status: Completed
 
 Align homepage empty-state UX with PRD for no-match search results.
 
@@ -293,7 +293,7 @@ Deliverables
 
 # Task 16 - Add Header And Homepage Integration Tests For Search
 
-Status: Pending
+Status: Completed
 
 Add automated coverage for end-to-end search interactions.
 
@@ -314,7 +314,7 @@ Deliverables
 
 # Task 17 - Run Feature Verification
 
-Status: Pending
+Status: Completed
 
 Validate completed search behavior with automated and manual checks.
 

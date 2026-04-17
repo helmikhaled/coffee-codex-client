@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { RecipeCategory } from '../../contracts/recipe-summary.dto';
 import {
   RECIPE_FILTER_CATEGORY_OPTIONS,
@@ -128,23 +129,41 @@ import { RecipeListStore } from './recipe-list.store';
             class="rounded-[1.75rem] border border-dashed border-stone-300/90 bg-stone-100/70 px-6 py-10 text-center dark:border-stone-700 dark:bg-stone-900/60"
           >
             <p class="text-[0.72rem] uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">
-              {{ store.hasActiveFilters() ? 'No Matching Recipes' : 'No Recipes Yet' }}
+              {{
+                store.hasActiveSearch()
+                  ? 'No Recipes Found'
+                  : store.hasActiveFilters()
+                    ? 'No Matching Recipes'
+                    : 'No Recipes Yet'
+              }}
             </p>
             <h3 class="mt-3 font-serif text-3xl text-stone-900 dark:text-stone-50">
               {{
-                store.hasActiveFilters()
+                store.hasActiveSearch()
+                  ? 'No recipes found'
+                  : store.hasActiveFilters()
                   ? 'No recipes matched your selected filters.'
                   : 'The library is currently empty.'
               }}
             </h3>
             <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-stone-600 dark:text-stone-300">
               {{
-                store.hasActiveFilters()
+                store.hasActiveSearch()
+                  ? 'Try another keyword or clear search to return to the full recipe shelf.'
+                  : store.hasActiveFilters()
                   ? 'Try a different category or tag to broaden the recipe shelf.'
                   : 'Once the curator publishes recipes, they will appear here in their intended browsing order.'
               }}
             </p>
-            @if (store.hasActiveFilters()) {
+            @if (store.hasActiveSearch()) {
+              <button
+                type="button"
+                class="mt-6 inline-flex min-w-40 items-center justify-center rounded-full border border-stone-300/80 bg-white px-6 py-3 text-sm font-medium tracking-[0.08em] text-stone-700 transition hover:border-stone-400 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:hover:border-stone-600 dark:hover:bg-stone-800"
+                (click)="clearSearch()"
+              >
+                Clear Search
+              </button>
+            } @else if (store.hasActiveFilters()) {
               <button
                 type="button"
                 class="mt-6 inline-flex min-w-40 items-center justify-center rounded-full border border-stone-300/80 bg-white px-6 py-3 text-sm font-medium tracking-[0.08em] text-stone-700 transition hover:border-stone-400 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:hover:border-stone-600 dark:hover:bg-stone-800"
@@ -190,6 +209,7 @@ import { RecipeListStore } from './recipe-list.store';
 export class HomePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly store = inject(RecipeListStore);
   protected readonly skeletonCards = [1, 2, 3, 4, 5, 6];
   protected readonly categoryOptions = RECIPE_FILTER_CATEGORY_OPTIONS;
@@ -206,13 +226,10 @@ export class HomePage implements OnInit {
     return 'Curator-built collection';
   });
 
-  async ngOnInit(): Promise<void> {
-    const queryParams = this.route.snapshot.queryParamMap;
-    const category = this.normalizeCategory(queryParams.get('category'));
-    const tag = this.normalizeTag(queryParams.get('tag'));
-
-    await this.store.syncFilters(category, tag);
-    await this.store.loadInitial();
+  ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((queryParams) => {
+      void this.syncListingQueryFromRoute(queryParams);
+    });
   }
 
   protected async loadMore(): Promise<void> {
@@ -229,17 +246,30 @@ export class HomePage implements OnInit {
 
   protected async applyCategoryFilter(category: RecipeCategory | null): Promise<void> {
     await this.store.applyCategoryFilter(category);
-    await this.updateFilterQueryParams(this.store.selectedCategory(), this.store.selectedTag());
+    await this.updateListingQueryParams(
+      this.store.selectedCategory(),
+      this.store.selectedTag(),
+      this.store.searchTerm(),
+    );
   }
 
   protected async applyTagFilter(tag: string | null): Promise<void> {
     await this.store.applyTagFilter(tag);
-    await this.updateFilterQueryParams(this.store.selectedCategory(), this.store.selectedTag());
+    await this.updateListingQueryParams(
+      this.store.selectedCategory(),
+      this.store.selectedTag(),
+      this.store.searchTerm(),
+    );
   }
 
   protected async clearFilters(): Promise<void> {
     await this.store.clearFilters();
-    await this.updateFilterQueryParams(null, null);
+    await this.updateListingQueryParams(null, null, this.store.searchTerm());
+  }
+
+  protected async clearSearch(): Promise<void> {
+    await this.store.clearSearch();
+    await this.updateListingQueryParams(this.store.selectedCategory(), this.store.selectedTag(), null);
   }
 
   private normalizeCategory(value: string | null): RecipeCategory | null {
@@ -259,12 +289,34 @@ export class HomePage implements OnInit {
     return normalized;
   }
 
-  private async updateFilterQueryParams(category: RecipeCategory | null, tag: string | null): Promise<void> {
+  private normalizeSearch(value: string | null): string | null {
+    const normalized = value?.trim();
+    return normalized ? normalized : null;
+  }
+
+  private async syncListingQueryFromRoute(queryParams: ParamMap): Promise<void> {
+    const category = this.normalizeCategory(queryParams.get('category'));
+    const tag = this.normalizeTag(queryParams.get('tag'));
+    const search = this.normalizeSearch(queryParams.get('search'));
+
+    await this.store.syncQuery(category, tag, search);
+
+    if (!this.store.hasLoaded() && !this.store.isInitialLoading()) {
+      await this.store.loadInitial();
+    }
+  }
+
+  private async updateListingQueryParams(
+    category: RecipeCategory | null,
+    tag: string | null,
+    search: string | null,
+  ): Promise<void> {
     await this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         category: category ?? null,
         tag: tag ?? null,
+        search: search ?? null,
       },
     });
   }

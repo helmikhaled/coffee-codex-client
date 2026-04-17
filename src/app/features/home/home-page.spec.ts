@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter, Router, convertToParamMap } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 import { PagedResponseDto } from '../../contracts/paged-response.dto';
 import { RecipeSummaryDto } from '../../contracts/recipe-summary.dto';
@@ -12,11 +13,17 @@ import { HomePage } from './home-page';
 describe('HomePage', () => {
   let httpController: HttpTestingController;
   let router: Router;
-  let routeStub: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
+  let queryParamMap$: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+  let routeStub: {
+    queryParamMap: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+    snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> };
+  };
   const recipesEndpoint = `${environment.apiBaseUrl.replace(/\/+$/, '')}/recipes`;
 
   beforeEach(async () => {
+    queryParamMap$ = new BehaviorSubject(convertToParamMap({}));
     routeStub = {
+      queryParamMap: queryParamMap$,
       snapshot: {
         queryParamMap: convertToParamMap({}),
       },
@@ -93,7 +100,8 @@ describe('HomePage', () => {
         req.params.get('page') === '2' &&
         req.params.get('pageSize') === '12' &&
         !req.params.has('category') &&
-        !req.params.has('tag'),
+        !req.params.has('tag') &&
+        !req.params.has('search'),
     );
 
     expect(nextPageRequests.length).toBe(1);
@@ -111,7 +119,7 @@ describe('HomePage', () => {
   });
 
   it('should initialize filters from URL query params on first load', async () => {
-    routeStub.snapshot.queryParamMap = convertToParamMap({
+    setRouteQueryParams({
       category: 'Modern',
       tag: 'matcha',
     });
@@ -193,7 +201,75 @@ describe('HomePage', () => {
 
     expect(router.navigate).toHaveBeenCalledWith([], {
       relativeTo: routeStub as unknown as ActivatedRoute,
-      queryParams: { category: null, tag: null },
+      queryParams: { category: null, tag: null, search: null },
+    });
+  });
+
+  it('should request searched page 1 results when search query param is active', async () => {
+    setRouteQueryParams({ search: 'matcha' });
+
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1, { search: 'matcha' }).flush(
+      createPagedResponse(1, 1, [createRecipeSummary('dirty-matcha', 'Dirty Matcha', 'Modern')]),
+    );
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(content).toContain('Dirty Matcha');
+  });
+
+  it('should reload results when route search query param changes after initial load', async () => {
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1).flush(createPagedResponse(1, 1, [createRecipeSummary('classic', 'Classic', 'Classic')]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    setRouteQueryParams({ search: 'matcha' });
+    await Promise.resolve();
+
+    expectRecipeRequest(1, { search: 'matcha' }).flush(
+      createPagedResponse(1, 1, [createRecipeSummary('dirty-matcha', 'Dirty Matcha', 'Modern')]),
+    );
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(content).toContain('Dirty Matcha');
+  });
+
+  it('should show no-results search state and clear-search recovery action', async () => {
+    setRouteQueryParams({ search: 'matcha' });
+
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1, { search: 'matcha' }).flush(createPagedResponse(1, 1, []));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(content).toContain('No recipes found');
+
+    findButton(fixture.nativeElement as HTMLElement, 'Clear Search')?.click();
+    await Promise.resolve();
+
+    expectRecipeRequest(1).flush(createPagedResponse(1, 1, [createRecipeSummary('all', 'All', 'Classic')]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(router.navigate).toHaveBeenCalledWith([], {
+      relativeTo: routeStub as unknown as ActivatedRoute,
+      queryParams: { category: null, tag: null, search: null },
     });
   });
 
@@ -225,15 +301,22 @@ describe('HomePage', () => {
     fixture.detectChanges();
   });
 
-  function expectRecipeRequest(page: number, filters?: { category?: string; tag?: string }) {
+  function setRouteQueryParams(params: Record<string, string>): void {
+    const queryParamMap = convertToParamMap(params);
+    routeStub.snapshot.queryParamMap = queryParamMap;
+    queryParamMap$.next(queryParamMap);
+  }
+
+  function expectRecipeRequest(page: number, query?: { category?: string; tag?: string; search?: string }) {
     return httpController.expectOne(
       (req) =>
         req.method === 'GET' &&
         req.url === recipesEndpoint &&
         req.params.get('page') === String(page) &&
         req.params.get('pageSize') === '12' &&
-        (filters?.category ? req.params.get('category') === filters.category : !req.params.has('category')) &&
-        (filters?.tag ? req.params.get('tag') === filters.tag : !req.params.has('tag')),
+        (query?.category ? req.params.get('category') === query.category : !req.params.has('category')) &&
+        (query?.tag ? req.params.get('tag') === query.tag : !req.params.has('tag')) &&
+        (query?.search ? req.params.get('search') === query.search : !req.params.has('search')),
     );
   }
 });
