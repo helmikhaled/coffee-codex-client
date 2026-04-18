@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { RecipeSummaryDto } from '../../contracts/recipe-summary.dto';
+import { formatBrewCount } from '../../shared/formatters/brew-count';
 
 @Component({
   selector: 'app-recipe-card',
@@ -115,9 +116,7 @@ export class RecipeCard {
   recipeLink = input<string | readonly (string | number)[] | null>(null);
 
   protected readonly brewCountLabel = computed(() => {
-    const brewCount = this.recipe().brewCount;
-    const formatted = new Intl.NumberFormat('en-US').format(brewCount);
-    return `${formatted} brews`;
+    return formatBrewCount(this.recipe().brewCount);
   });
 
   protected readonly imageAlt = computed(() => `${this.recipe().title} thumbnail`);

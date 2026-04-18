@@ -8,11 +8,12 @@ import { vi } from 'vitest';
 
 describe('RecipeDetailStore', () => {
   let store: RecipeDetailStore;
-  let api: { getRecipeById: ReturnType<typeof vi.fn> };
+  let api: { getRecipeById: ReturnType<typeof vi.fn>; recordRecipeView: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     api = {
       getRecipeById: vi.fn(),
+      recordRecipeView: vi.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -25,11 +26,15 @@ describe('RecipeDetailStore', () => {
   it('should load recipe detail and update state on success', async () => {
     const recipe = createRecipeDetail('dirty-matcha');
     api.getRecipeById.mockReturnValue(of(recipe));
+    api.recordRecipeView.mockReturnValue(of(void 0));
 
     await store.load('dirty-matcha');
+    await Promise.resolve();
 
     expect(api.getRecipeById).toHaveBeenCalledTimes(1);
     expect(api.getRecipeById).toHaveBeenCalledWith('dirty-matcha');
+    expect(api.recordRecipeView).toHaveBeenCalledTimes(1);
+    expect(api.recordRecipeView).toHaveBeenCalledWith('dirty-matcha');
     expect(store.isLoading()).toBe(false);
     expect(store.hasLoaded()).toBe(true);
     expect(store.error()).toBeNull();
@@ -43,6 +48,7 @@ describe('RecipeDetailStore', () => {
 
     await store.load('dirty-matcha');
 
+    expect(api.recordRecipeView).not.toHaveBeenCalled();
     expect(store.isLoading()).toBe(false);
     expect(store.hasLoaded()).toBe(true);
     expect(store.notFound()).toBe(false);
@@ -55,6 +61,7 @@ describe('RecipeDetailStore', () => {
 
     await store.load('missing-recipe');
 
+    expect(api.recordRecipeView).not.toHaveBeenCalled();
     expect(store.isLoading()).toBe(false);
     expect(store.hasLoaded()).toBe(true);
     expect(store.notFound()).toBe(true);
@@ -66,13 +73,58 @@ describe('RecipeDetailStore', () => {
     api.getRecipeById
       .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })))
       .mockReturnValueOnce(of(createRecipeDetail('dirty-matcha')));
+    api.recordRecipeView.mockReturnValue(of(void 0));
 
     await store.load('dirty-matcha');
     await store.retry();
+    await Promise.resolve();
 
     expect(api.getRecipeById).toHaveBeenCalledTimes(2);
     expect(api.getRecipeById).toHaveBeenNthCalledWith(1, 'dirty-matcha');
     expect(api.getRecipeById).toHaveBeenNthCalledWith(2, 'dirty-matcha');
+    expect(api.recordRecipeView).toHaveBeenCalledTimes(1);
+    expect(api.recordRecipeView).toHaveBeenCalledWith('dirty-matcha');
+    expect(store.error()).toBeNull();
+    expect(store.notFound()).toBe(false);
+    expect(store.recipe()?.id).toBe('dirty-matcha');
+  });
+
+  it('should not record duplicate views when the same recipe is loaded again', async () => {
+    api.getRecipeById.mockReturnValue(of(createRecipeDetail('dirty-matcha')));
+    api.recordRecipeView.mockReturnValue(of(void 0));
+
+    await store.load('dirty-matcha');
+    await Promise.resolve();
+    await store.load('dirty-matcha');
+    await Promise.resolve();
+
+    expect(api.getRecipeById).toHaveBeenCalledTimes(2);
+    expect(api.recordRecipeView).toHaveBeenCalledTimes(1);
+    expect(api.recordRecipeView).toHaveBeenCalledWith('dirty-matcha');
+  });
+
+  it('should record a new view when navigating to a different recipe id', async () => {
+    api.getRecipeById.mockImplementation((id: string) => of(createRecipeDetail(id)));
+    api.recordRecipeView.mockReturnValue(of(void 0));
+
+    await store.load('dirty-matcha');
+    await Promise.resolve();
+    await store.load('orange-americano');
+    await Promise.resolve();
+
+    expect(api.recordRecipeView).toHaveBeenCalledTimes(2);
+    expect(api.recordRecipeView).toHaveBeenNthCalledWith(1, 'dirty-matcha');
+    expect(api.recordRecipeView).toHaveBeenNthCalledWith(2, 'orange-americano');
+  });
+
+  it('should keep the recipe visible when recording a view fails', async () => {
+    api.getRecipeById.mockReturnValue(of(createRecipeDetail('dirty-matcha')));
+    api.recordRecipeView.mockReturnValue(throwError(() => new Error('View tracking failed')));
+
+    await store.load('dirty-matcha');
+    await Promise.resolve();
+
+    expect(api.recordRecipeView).toHaveBeenCalledTimes(1);
     expect(store.error()).toBeNull();
     expect(store.notFound()).toBe(false);
     expect(store.recipe()?.id).toBe('dirty-matcha');

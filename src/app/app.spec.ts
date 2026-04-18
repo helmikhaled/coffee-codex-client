@@ -51,6 +51,8 @@ describe('App', () => {
       (req) => req.method === 'GET' && req.url === `${recipesEndpoint}/espresso-tonic`,
     );
     request.flush(createRecipeDetail('espresso-tonic', 'Espresso Tonic'));
+    await Promise.resolve();
+    httpController.expectOne((req) => req.method === 'POST' && req.url === `${recipesEndpoint}/espresso-tonic/view`).flush(null);
 
     await fixture.whenStable();
     fixture.detectChanges();

@@ -6,7 +6,7 @@ Tasks must be executed sequentially.
 
 # Task 1 — Add Recipe View API Method
 
-Status: Pending
+Status: Completed
 
 Extend the recipe detail API service with a dedicated method for recording a recipe view.
 
@@ -30,7 +30,7 @@ Deliverables
 
 # Task 2 — Introduce Shared Brew Count Formatting
 
-Status: Pending
+Status: Completed
 
 Create a reusable formatter for localized brew count display so list and detail views share the same output behavior.
 
@@ -55,7 +55,7 @@ Deliverables
 
 # Task 3 — Add View Tracking State To Recipe Detail Store
 
-Status: Pending
+Status: Completed
 
 Teach the recipe detail store to coordinate detail loading and one-time-per-page-load view tracking.
 
@@ -81,7 +81,7 @@ Deliverables
 
 # Task 4 — Render Brew Count On The Recipe Detail Page
 
-Status: Pending
+Status: Completed
 
 Expose brew count in the recipe detail hero area in a way that matches the editorial UI direction.
 
@@ -107,7 +107,7 @@ Deliverables
 
 # Task 5 — Update Recipe Cards To Use Shared Formatting
 
-Status: Pending
+Status: Completed
 
 Switch recipe cards to the shared brew count formatter so list and detail stay consistent.
 
@@ -131,7 +131,7 @@ Deliverables
 
 # Task 6 — Add Page-Level View Tracking Integration Tests
 
-Status: Pending
+Status: Completed
 
 Cover the end-to-end recipe page behavior around loading and tracking.
 
@@ -156,7 +156,7 @@ Deliverables
 
 # Task 7 — Run Frontend Regression Checks
 
-Status: Pending
+Status: Completed
 
 Run the existing frontend test/build commands after implementation.
 

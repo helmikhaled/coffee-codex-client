@@ -48,6 +48,27 @@ describe('RecipeDetailApiService', () => {
 
     expect(response?.id).toBe('dirty matcha/1');
   });
+
+  it('should record a recipe view using POST', () => {
+    service.recordRecipeView('dirty-matcha').subscribe();
+
+    const request = httpController.expectOne(
+      (req) => req.method === 'POST' && req.url === `${recipesEndpoint}/dirty-matcha/view`,
+    );
+
+    expect(request.request.body).toBeNull();
+    request.flush(null);
+  });
+
+  it('should encode route identifiers in the recipe view request URL', () => {
+    service.recordRecipeView('dirty matcha/1').subscribe();
+
+    const request = httpController.expectOne(
+      (req) => req.method === 'POST' && req.url === `${recipesEndpoint}/dirty%20matcha%2F1/view`,
+    );
+
+    request.flush(null);
+  });
 });
 
 function createRecipeDetail(id: string): RecipeDetailDto {

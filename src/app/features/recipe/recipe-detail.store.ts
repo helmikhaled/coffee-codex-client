@@ -15,6 +15,7 @@ export class RecipeDetailStore {
   private readonly _hasLoaded = signal(false);
   private readonly _notFound = signal(false);
   private readonly _lastRequestedId = signal<string | null>(null);
+  private readonly _lastRecordedViewId = signal<string | null>(null);
 
   readonly recipe = this._recipe.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -45,8 +46,10 @@ export class RecipeDetailStore {
 
     try {
       const response = await firstValueFrom(this.api.getRecipeById(normalizedId));
-      this._recipe.set(this.normalizeRecipe(response));
+      const recipe = this.normalizeRecipe(response);
+      this._recipe.set(recipe);
       this._hasLoaded.set(true);
+      void this.recordRecipeView(recipe.id);
     } catch (error) {
       this._recipe.set(null);
       this._hasLoaded.set(true);
@@ -70,6 +73,20 @@ export class RecipeDetailStore {
     }
 
     await this.load(id);
+  }
+
+  private async recordRecipeView(id: string): Promise<void> {
+    if (!id || this._lastRecordedViewId() === id) {
+      return;
+    }
+
+    this._lastRecordedViewId.set(id);
+
+    try {
+      await firstValueFrom(this.api.recordRecipeView(id));
+    } catch {
+      // Recording a view is a non-blocking side effect and should not disrupt recipe rendering.
+    }
   }
 
   private normalizeRecipe(recipe: RecipeDetailDto): RecipeDetailDto {

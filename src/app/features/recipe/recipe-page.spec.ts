@@ -30,11 +30,50 @@ describe('RecipePage', () => {
 
     const request = expectRecipeDetailRequest('dirty-matcha');
     request.flush(createRecipeDetail('dirty-matcha'));
+    await flushRecipeViewRequest('dirty-matcha');
 
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).textContent ?? '').toContain('Dirty Matcha');
+  });
+
+  it('should trigger recipe view tracking only after recipe detail loads', async () => {
+    const fixture = TestBed.createComponent(RecipePage);
+    fixture.componentRef.setInput('id', 'dirty-matcha');
+
+    fixture.detectChanges();
+
+    expect(httpController.match((req) => req.method === 'POST' && req.url === `${recipesEndpoint}/dirty-matcha/view`).length).toBe(0);
+
+    expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+    await Promise.resolve();
+
+    const viewRequests = httpController.match(
+      (req) => req.method === 'POST' && req.url === `${recipesEndpoint}/dirty-matcha/view`,
+    );
+    expect(viewRequests.length).toBe(1);
+
+    viewRequests[0].flush(null);
+    await fixture.whenStable();
+  });
+
+  it('should send only one recipe view request for a single page load', async () => {
+    const fixture = TestBed.createComponent(RecipePage);
+    fixture.componentRef.setInput('id', 'dirty-matcha');
+
+    fixture.detectChanges();
+
+    expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+    await flushRecipeViewRequest('dirty-matcha');
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(httpController.match((req) => req.method === 'POST' && req.url === `${recipesEndpoint}/dirty-matcha/view`).length).toBe(
+      0,
+    );
   });
 
   it('should render images, specs, ingredients, steps, and metadata sections', async () => {
@@ -44,6 +83,7 @@ describe('RecipePage', () => {
     fixture.detectChanges();
 
     expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+    await flushRecipeViewRequest('dirty-matcha');
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -57,6 +97,7 @@ describe('RecipePage', () => {
     expect(content).toContain('Matcha Powder');
     expect(content).toContain('Whisk matcha with hot water.');
     expect(content).toContain('Coffee Codex');
+    expect(content).toContain('1,200 brews');
 
     const heroImage = (fixture.nativeElement as HTMLElement).querySelector('img[alt="Dirty Matcha Hero"]');
     expect(heroImage).toBeTruthy();
@@ -69,6 +110,7 @@ describe('RecipePage', () => {
     fixture.detectChanges();
 
     expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+    await flushRecipeViewRequest('dirty-matcha');
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -98,6 +140,7 @@ describe('RecipePage', () => {
         images: [{ url: 'https://images.example.com/single-image.jpg', caption: 'Single Image', order: 1 }],
       }),
     );
+    await flushRecipeViewRequest('single-image');
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -126,6 +169,7 @@ describe('RecipePage', () => {
         },
       }),
     );
+    await flushRecipeViewRequest('matcha-latte');
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -158,6 +202,7 @@ describe('RecipePage', () => {
 
     const retryRequest = expectRecipeDetailRequest('dirty-matcha');
     retryRequest.flush(createRecipeDetail('dirty-matcha'));
+    await flushRecipeViewRequest('dirty-matcha');
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -167,9 +212,62 @@ describe('RecipePage', () => {
     expect(contentAfterRetry).not.toContain('Recipe details did not load.');
   });
 
+  it('should keep rendering the recipe when view tracking fails', async () => {
+    const fixture = TestBed.createComponent(RecipePage);
+    fixture.componentRef.setInput('id', 'dirty-matcha');
+
+    fixture.detectChanges();
+
+    expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+    await Promise.resolve();
+
+    expectRecipeViewRequest('dirty-matcha').flush('Tracking error', { status: 500, statusText: 'Server Error' });
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(content).toContain('Dirty Matcha');
+    expect(content).not.toContain('Recipe details did not load.');
+  });
+
+  it('should send a new recipe view request when the route id changes', async () => {
+    const fixture = TestBed.createComponent(RecipePage);
+    fixture.componentRef.setInput('id', 'dirty-matcha');
+
+    fixture.detectChanges();
+
+    expectRecipeDetailRequest('dirty-matcha').flush(createRecipeDetail('dirty-matcha'));
+    await flushRecipeViewRequest('dirty-matcha');
+    await fixture.whenStable();
+
+    fixture.componentRef.setInput('id', 'orange-americano');
+    fixture.detectChanges();
+
+    expectRecipeDetailRequest('orange-americano').flush(
+      createRecipeDetail('orange-americano', { title: 'Orange Americano' }),
+    );
+    await flushRecipeViewRequest('orange-americano');
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent ?? '').toContain('Orange Americano');
+  });
+
   function expectRecipeDetailRequest(id: string) {
     const encodedId = encodeURIComponent(id);
     return httpController.expectOne((req) => req.method === 'GET' && req.url === `${recipesEndpoint}/${encodedId}`);
+  }
+
+  function expectRecipeViewRequest(id: string) {
+    const encodedId = encodeURIComponent(id);
+    return httpController.expectOne((req) => req.method === 'POST' && req.url === `${recipesEndpoint}/${encodedId}/view`);
+  }
+
+  async function flushRecipeViewRequest(id: string): Promise<void> {
+    await Promise.resolve();
+    expectRecipeViewRequest(id).flush(null);
   }
 });
 

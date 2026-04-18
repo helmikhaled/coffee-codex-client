@@ -5,6 +5,7 @@ import { RecipeIngredients } from './recipe-ingredients';
 import { RecipeMetadata } from './recipe-metadata';
 import { RecipePreparationSteps } from './recipe-preparation-steps';
 import { RecipeDetailStore } from './recipe-detail.store';
+import { formatBrewCount } from '../../shared/formatters/brew-count';
 
 @Component({
   selector: 'app-recipe-page',
@@ -64,6 +65,13 @@ import { RecipeDetailStore } from './recipe-detail.store';
             {{ recipe.title }}
           </h1>
           <p class="max-w-3xl text-base leading-7 text-stone-600 dark:text-stone-300 sm:text-lg">{{ recipe.description }}</p>
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <span
+              class="inline-flex items-center rounded-full border border-stone-200/80 bg-white/85 px-4 py-2 text-sm font-medium tracking-[0.08em] text-stone-700 dark:border-stone-700 dark:bg-stone-900/80 dark:text-stone-100"
+            >
+              {{ formatBrewCount(recipe.brewCount) }}
+            </span>
+          </div>
         </header>
 
         <section
@@ -109,6 +117,7 @@ export class RecipePage implements OnDestroy {
   id = input('');
 
   protected readonly store = inject(RecipeDetailStore);
+  protected readonly formatBrewCount = formatBrewCount;
   protected readonly copyFeedback = signal<string | null>(null);
   protected readonly isCopied = signal(false);
   private copyStateResetHandle: ReturnType<typeof setTimeout> | null = null;

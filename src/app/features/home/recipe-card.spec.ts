@@ -25,6 +25,7 @@ describe('RecipeCard', () => {
 
     expect(anchor).toBeTruthy();
     expect(anchor?.getAttribute('href')).toContain('/r/dirty-matcha');
+    expect((fixture.nativeElement as HTMLElement).textContent ?? '').toContain('1,200 brews');
 
     anchor?.click();
     await fixture.whenStable();

@@ -10,7 +10,15 @@ export class RecipeDetailApiService {
   private readonly recipesEndpoint = `${environment.apiBaseUrl.replace(/\/+$/, '')}/recipes`;
 
   getRecipeById(id: string): Observable<RecipeDetailDto> {
+    return this.httpClient.get<RecipeDetailDto>(this.getRecipeUrl(id));
+  }
+
+  recordRecipeView(id: string): Observable<void> {
+    return this.httpClient.post<void>(`${this.getRecipeUrl(id)}/view`, null);
+  }
+
+  private getRecipeUrl(id: string): string {
     const encodedId = encodeURIComponent(id);
-    return this.httpClient.get<RecipeDetailDto>(`${this.recipesEndpoint}/${encodedId}`);
+    return `${this.recipesEndpoint}/${encodedId}`;
   }
 }
