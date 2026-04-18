@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { RecipeCategory } from '../../contracts/recipe-summary.dto';
+import { RecipeListApiService } from './recipe-list-api.service';
 import {
   RECIPE_FILTER_CATEGORY_OPTIONS,
   RECIPE_FILTER_CATEGORY_VALUES,
@@ -55,6 +57,21 @@ import { RecipeListStore } from './recipe-list.store';
                 {{ recipeCountSummary() }}
               </div>
             </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                class="inline-flex min-w-40 items-center justify-center rounded-full bg-stone-900 px-6 py-3 text-sm font-medium tracking-[0.08em] text-stone-50 transition hover:bg-stone-700 disabled:cursor-wait disabled:opacity-70 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300"
+                [disabled]="isRandomLoading()"
+                (click)="discoverRandomRecipe()"
+              >
+                {{ isRandomLoading() ? 'Finding…' : 'Surprise Me' }}
+              </button>
+            </div>
+
+            @if (randomError(); as randomError) {
+              <p class="text-sm leading-6 text-rose-700 dark:text-rose-300">{{ randomError }}</p>
+            }
           </div>
 
           <aside
@@ -79,8 +96,8 @@ import { RecipeListStore } from './recipe-list.store';
           </div>
 
           <p class="max-w-xl text-sm leading-6 text-stone-600 dark:text-stone-300">
-            Every card leads directly into the brewing instructions. Filtering, search, and random discovery will layer on
-            top of this foundation in later specs.
+            Every card leads directly into the brewing instructions. Filters and search narrow the shelf, while Surprise Me
+            offers one-click discovery.
           </p>
         </div>
 
@@ -210,10 +227,13 @@ export class HomePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly recipeListApi = inject(RecipeListApiService);
   protected readonly store = inject(RecipeListStore);
   protected readonly skeletonCards = [1, 2, 3, 4, 5, 6];
   protected readonly categoryOptions = RECIPE_FILTER_CATEGORY_OPTIONS;
   protected readonly tagOptions = RECIPE_FILTER_TAG_OPTIONS;
+  protected readonly isRandomLoading = signal(false);
+  protected readonly randomError = signal<string | null>(null);
   protected readonly recipeCountSummary = computed(() => {
     if (this.store.isInitialLoading() && !this.store.hasRecipes()) {
       return 'Brewing selection';
@@ -270,6 +290,29 @@ export class HomePage implements OnInit {
   protected async clearSearch(): Promise<void> {
     await this.store.clearSearch();
     await this.updateListingQueryParams(this.store.selectedCategory(), this.store.selectedTag(), null);
+  }
+
+  protected async discoverRandomRecipe(): Promise<void> {
+    if (this.isRandomLoading()) {
+      return;
+    }
+
+    this.randomError.set(null);
+    this.isRandomLoading.set(true);
+
+    try {
+      const randomRecipe = await firstValueFrom(this.recipeListApi.getRandomRecipe());
+      const recipeId = randomRecipe.id?.trim();
+      if (!recipeId) {
+        throw new Error('Random recipe response did not include a valid id.');
+      }
+
+      await this.router.navigate(['/r', recipeId]);
+    } catch {
+      this.randomError.set('Unable to discover a random recipe right now. Please try again.');
+    } finally {
+      this.isRandomLoading.set(false);
+    }
   }
 
   private normalizeCategory(value: string | null): RecipeCategory | null {

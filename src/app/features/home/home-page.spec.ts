@@ -301,6 +301,107 @@ describe('HomePage', () => {
     fixture.detectChanges();
   });
 
+  it('should fetch a random recipe and navigate to its detail page on surprise me click', async () => {
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1).flush(createPagedResponse(1, 1, [createRecipeSummary('classic', 'Classic', 'Classic')]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const surpriseMeButton = findButton(fixture.nativeElement as HTMLElement, 'Surprise Me');
+    expect(surpriseMeButton).toBeTruthy();
+    surpriseMeButton?.click();
+    await Promise.resolve();
+
+    expectRandomRecipeRequest().flush({ id: 'dirty-matcha' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/r', 'dirty-matcha']);
+  });
+
+  it('should disable surprise me while loading and prevent duplicate random requests', async () => {
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1).flush(createPagedResponse(1, 1, [createRecipeSummary('classic', 'Classic', 'Classic')]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const surpriseMeButton = findButton(fixture.nativeElement as HTMLElement, 'Surprise Me');
+    expect(surpriseMeButton).toBeTruthy();
+
+    surpriseMeButton?.click();
+    fixture.detectChanges();
+
+    const randomRequests = httpController.match(
+      (req) => req.method === 'GET' && req.url === `${recipesEndpoint}/random`,
+    );
+    expect(randomRequests.length).toBe(1);
+
+    const loadingButton = findButton(fixture.nativeElement as HTMLElement, 'Finding');
+    expect(loadingButton?.disabled).toBe(true);
+    loadingButton?.click();
+
+    const randomRequestsAfterSecondClick = httpController.match(
+      (req) => req.method === 'GET' && req.url === `${recipesEndpoint}/random`,
+    );
+    expect(randomRequestsAfterSecondClick.length).toBe(1);
+
+    randomRequestsAfterSecondClick[0].flush({ id: 'dirty-matcha' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
+
+  it('should show random request error feedback and allow retry', async () => {
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1).flush(createPagedResponse(1, 1, [createRecipeSummary('classic', 'Classic', 'Classic')]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    findButton(fixture.nativeElement as HTMLElement, 'Surprise Me')?.click();
+    await Promise.resolve();
+    expectRandomRecipeRequest().flush('Request failed', { status: 500, statusText: 'Server Error' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const contentAfterError = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(contentAfterError).toContain('Unable to discover a random recipe right now. Please try again.');
+
+    findButton(fixture.nativeElement as HTMLElement, 'Surprise Me')?.click();
+    await Promise.resolve();
+    expectRandomRecipeRequest().flush({ id: 'orange-americano' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/r', 'orange-americano']);
+  });
+
+  it('should show error feedback for invalid random recipe payloads', async () => {
+    const fixture = TestBed.createComponent(HomePage);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expectRecipeRequest(1).flush(createPagedResponse(1, 1, [createRecipeSummary('classic', 'Classic', 'Classic')]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    findButton(fixture.nativeElement as HTMLElement, 'Surprise Me')?.click();
+    await Promise.resolve();
+    expectRandomRecipeRequest().flush({ id: '   ' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(content).toContain('Unable to discover a random recipe right now. Please try again.');
+  });
+
   function setRouteQueryParams(params: Record<string, string>): void {
     const queryParamMap = convertToParamMap(params);
     routeStub.snapshot.queryParamMap = queryParamMap;
@@ -317,6 +418,12 @@ describe('HomePage', () => {
         (query?.category ? req.params.get('category') === query.category : !req.params.has('category')) &&
         (query?.tag ? req.params.get('tag') === query.tag : !req.params.has('tag')) &&
         (query?.search ? req.params.get('search') === query.search : !req.params.has('search')),
+    );
+  }
+
+  function expectRandomRecipeRequest() {
+    return httpController.expectOne(
+      (req) => req.method === 'GET' && req.url === `${recipesEndpoint}/random`,
     );
   }
 });

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RecipeBrewSpecs } from './recipe-brew-specs';
 import { RecipeHeroMedia } from './recipe-hero-media';
 import { RecipeIngredients } from './recipe-ingredients';
@@ -67,22 +67,24 @@ import { RecipeDetailStore } from './recipe-detail.store';
         </header>
 
         <section
-          class="space-y-3 rounded-2xl border border-stone-200/80 bg-white/85 p-4 dark:border-stone-800 dark:bg-stone-900/80 sm:p-5"
+          class="rounded-2xl border border-stone-200/80 bg-white/85 p-4 dark:border-stone-800 dark:bg-stone-900/80 sm:p-5"
           aria-label="Share recipe URL"
         >
-          <p class="text-[0.7rem] uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">Share</p>
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="break-all text-sm text-stone-700 dark:text-stone-200">{{ shareUrl() }}</p>
+            <div class="space-y-1">
+              <p class="text-[0.7rem] uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">Share</p>
+              <p class="text-sm text-stone-600 dark:text-stone-300">Copy a direct link to this recipe.</p>
+            </div>
             <button
               type="button"
               class="inline-flex items-center justify-center rounded-full border border-stone-300/80 bg-white px-5 py-2 text-sm font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:hover:border-stone-600 dark:hover:bg-stone-800"
               (click)="copyShareUrl()"
             >
-              Copy Link
+              {{ isCopied() ? 'Copied' : 'Copy Link' }}
             </button>
           </div>
           @if (copyFeedback(); as copyFeedback) {
-            <p class="text-xs text-stone-600 dark:text-stone-300">{{ copyFeedback }}</p>
+            <p class="mt-1 text-xs text-stone-600 dark:text-stone-300">{{ copyFeedback }}</p>
           }
         </section>
 
@@ -103,11 +105,13 @@ import { RecipeDetailStore } from './recipe-detail.store';
     </div>
   `,
 })
-export class RecipePage {
+export class RecipePage implements OnDestroy {
   id = input('');
 
   protected readonly store = inject(RecipeDetailStore);
   protected readonly copyFeedback = signal<string | null>(null);
+  protected readonly isCopied = signal(false);
+  private copyStateResetHandle: ReturnType<typeof setTimeout> | null = null;
   protected readonly shareUrl = computed(() => {
     const recipeId = this.store.recipe()?.id || this.id().trim();
     if (!recipeId) {
@@ -139,7 +143,15 @@ export class RecipePage {
     await this.store.retry();
   }
 
+  ngOnDestroy(): void {
+    this.clearCopiedStateReset();
+  }
+
   protected async copyShareUrl(): Promise<void> {
+    this.clearCopiedStateReset();
+    this.copyFeedback.set(null);
+    this.isCopied.set(false);
+
     const url = this.shareUrl();
     if (!url) {
       this.copyFeedback.set('Share link is not ready yet.');
@@ -149,14 +161,32 @@ export class RecipePage {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       try {
         await navigator.clipboard.writeText(url);
-        this.copyFeedback.set('Link copied to clipboard.');
+        this.isCopied.set(true);
+        this.scheduleCopiedStateReset();
       } catch {
-        this.copyFeedback.set('Could not copy automatically. Please copy the link manually.');
+        this.copyFeedback.set('Could not copy automatically. Please copy it from the address bar.');
       }
 
       return;
     }
 
-    this.copyFeedback.set('Clipboard copy is unavailable in this browser. Please copy the link manually.');
+    this.copyFeedback.set('Clipboard copy is unavailable in this browser. Please copy it from the address bar.');
+  }
+
+  private clearCopiedStateReset(): void {
+    if (this.copyStateResetHandle === null) {
+      return;
+    }
+
+    clearTimeout(this.copyStateResetHandle);
+    this.copyStateResetHandle = null;
+  }
+
+  private scheduleCopiedStateReset(): void {
+    this.clearCopiedStateReset();
+    this.copyStateResetHandle = setTimeout(() => {
+      this.isCopied.set(false);
+      this.copyStateResetHandle = null;
+    }, 2200);
   }
 }

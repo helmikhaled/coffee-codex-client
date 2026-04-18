@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PagedResponseDto } from '../../contracts/paged-response.dto';
+import { RandomRecipeDto } from '../../contracts/random-recipe.dto';
 import { RecipeListQueryDto } from '../../contracts/recipe-list-query.dto';
 import { RecipeSummaryDto } from '../../contracts/recipe-summary.dto';
 import { environment } from '../../../environments/environment';
@@ -49,5 +50,9 @@ export class RecipeListApiService {
     query?: Pick<RecipeListQueryDto, 'category' | 'tag' | 'search'>,
   ): Observable<PagedResponseDto<RecipeSummaryDto>> {
     return this.getRecipes({ page: currentPage + 1, pageSize, ...query });
+  }
+
+  getRandomRecipe(): Observable<RandomRecipeDto> {
+    return this.httpClient.get<RandomRecipeDto>(`${this.recipesEndpoint}/random`);
   }
 }

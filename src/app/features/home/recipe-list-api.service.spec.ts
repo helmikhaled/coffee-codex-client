@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { PagedResponseDto } from '../../contracts/paged-response.dto';
+import { RandomRecipeDto } from '../../contracts/random-recipe.dto';
 import { RecipeSummaryDto } from '../../contracts/recipe-summary.dto';
 import { environment } from '../../../environments/environment';
 import { RecipeListApiService } from './recipe-list-api.service';
@@ -90,6 +91,22 @@ describe('RecipeListApiService', () => {
     );
 
     request.flush(createPagedResponse(1, 1, [createRecipeSummary('dirty-matcha', 'Dirty Matcha')]));
+  });
+
+  it('should request a random recipe from the random endpoint', () => {
+    let responseBody: RandomRecipeDto | undefined;
+
+    service.getRandomRecipe().subscribe((response) => {
+      responseBody = response;
+    });
+
+    const request = httpController.expectOne(
+      (req) => req.method === 'GET' && req.url === `${recipesEndpoint}/random`,
+    );
+
+    request.flush({ id: 'dirty-matcha' } satisfies RandomRecipeDto);
+
+    expect(responseBody?.id).toBe('dirty-matcha');
   });
 });
 
