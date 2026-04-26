@@ -6,7 +6,7 @@ Tasks must be executed sequentially.
 
 # Task 1 - Define Authentication Runtime Contract
 
-Status: Pending
+Status: Completed
 
 Create the frontend configuration shape required for authentication.
 
@@ -25,7 +25,7 @@ Deliverables
 
 # Task 2 - Populate Environment Configuration
 
-Status: Pending
+Status: Completed
 
 Add authentication configuration values to the existing environment files.
 
@@ -44,7 +44,7 @@ Deliverables
 
 # Task 3 - Register Auth Providers In Application Bootstrap
 
-Status: Pending
+Status: Completed
 
 Wire the Auth0 SDK into the root Angular configuration.
 
@@ -63,7 +63,7 @@ Deliverables
 
 # Task 4 - Create Centralized Auth Facade
 
-Status: Pending
+Status: Completed
 
 Add a reusable auth layer under the core application area.
 
@@ -82,7 +82,7 @@ Deliverables
 
 # Task 5 - Implement Return-Target Capture And Redirect Restoration
 
-Status: Pending
+Status: Completed
 
 Ensure login returns the admin to the originally requested protected route.
 
@@ -101,7 +101,7 @@ Deliverables
 
 # Task 6 - Create Protected Admin Route Skeleton
 
-Status: Pending
+Status: Completed
 
 Add the minimum admin route structure required for this feature.
 
@@ -120,7 +120,7 @@ Deliverables
 
 # Task 7 - Apply Route Protection To Admin Pages
 
-Status: Pending
+Status: Completed
 
 Protect the admin route tree so unauthenticated users cannot access it.
 
@@ -139,7 +139,7 @@ Deliverables
 
 # Task 8 - Replace Header Placeholder With Auth-Aware Controls
 
-Status: Pending
+Status: Completed
 
 Update the existing header so authentication state is visible in the UI.
 
@@ -158,7 +158,7 @@ Deliverables
 
 # Task 9 - Implement Logout Recovery Flow
 
-Status: Pending
+Status: Completed
 
 Complete the logout behavior so the app returns cleanly to a public state.
 
@@ -177,7 +177,7 @@ Deliverables
 
 # Task 10 - Configure Protected Backend Token Attachment
 
-Status: Pending
+Status: Completed
 
 Prepare the frontend for authenticated admin API calls.
 
@@ -196,7 +196,7 @@ Deliverables
 
 # Task 11 - Add Automated Tests For Auth UI And Routing
 
-Status: Pending
+Status: Completed
 
 Create tests for the main authentication user journey.
 
@@ -215,7 +215,7 @@ Deliverables
 
 # Task 12 - Add Automated Tests For Logout And Protected Requests
 
-Status: Pending
+Status: Completed
 
 Cover the remaining infrastructure behavior required by the spec.
 
@@ -234,7 +234,7 @@ Deliverables
 
 # Task 13 - Verify Feature End To End
 
-Status: Pending
+Status: Completed
 
 Run project checks and verify the implemented authentication flow against the PRD.
 
@@ -251,6 +251,7 @@ Verification
 Deliverables
 
 - authentication feature verified locally
+- verification completed with one pre-existing unrelated failure in `src/app/features/home/home-page.spec.ts`
 
 ---
 

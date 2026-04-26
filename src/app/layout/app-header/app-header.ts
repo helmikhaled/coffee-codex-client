@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Params, Router, RouterLink, UrlTree } from '@angular/router';
 import { filter, startWith } from 'rxjs';
+import { AuthFacade } from '../../core/auth/auth.facade';
 import { ThemeToggle } from '../../shared/theme-toggle/theme-toggle';
 
 @Component({
@@ -11,11 +12,16 @@ import { ThemeToggle } from '../../shared/theme-toggle/theme-toggle';
   templateUrl: './app-header.html',
 })
 export class AppHeader {
+  private readonly authFacade = inject(AuthFacade);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly searchInput = signal('');
   protected readonly isMobileSearchExpanded = signal(false);
+  protected readonly isAuthLoading = this.authFacade.isLoading;
+  protected readonly isAuthenticated = this.authFacade.isAuthenticated;
+  protected readonly canShowAdminNavigation = this.authFacade.canShowAdminNavigation;
+  protected readonly canStartLogin = this.authFacade.canStartLogin;
 
   constructor() {
     this.router.events
@@ -46,6 +52,14 @@ export class AppHeader {
   protected clearSearch(): void {
     this.searchInput.set('');
     void this.handleSearchQueryChange(null);
+  }
+
+  protected signIn(): void {
+    void this.authFacade.login();
+  }
+
+  protected signOut(): void {
+    void this.authFacade.logout();
   }
 
   private normalizeSearch(value: string | null): string | null {

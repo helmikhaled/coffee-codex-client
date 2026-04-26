@@ -73,14 +73,36 @@
         </button>
       </form>
 
+      @if (canShowAdminNavigation()) {
+        <a
+          routerLink="/admin/recipes"
+          class="inline-flex h-10 items-center justify-center rounded-full border border-stone-300/80 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+        >
+          Admin
+        </a>
+      }
+
       <app-theme-toggle />
 
-      <button
-        type="button"
-        class="h-10 rounded-full border border-stone-300/80 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
-      >
-        Sign In
-      </button>
+      @if (isAuthenticated()) {
+        <button
+          type="button"
+          class="h-10 rounded-full border border-stone-300/80 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+          (click)="signOut()"
+        >
+          Logout
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="h-10 rounded-full border border-stone-300/80 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+          [disabled]="!canStartLogin()"
+          [attr.aria-busy]="isAuthLoading()"
+          (click)="signIn()"
+        >
+          Sign In
+        </button>
+      }
     </div>
   </div>
 
